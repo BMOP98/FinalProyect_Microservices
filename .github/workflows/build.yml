@@ -1,0 +1,46 @@
+name: Build and Push Docker Images 
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+      
+    - name: Sign in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+    - name: Build and upload Docker images
+      run: |
+        services=("verify-information" "register-information" "encrypt-information" "login-user" "get-information" "count-information" "create-hall" "get-halls" "get-images"
+        "edit-hall" "get-rent" "create-rent" "edit-rent" "get-services" "create-service" "edit-service" "decrypt-information" "create-reserve")
+        
+        for service in "${services[@]}"
+        do
+          if [ -d "$service" ]; then
+            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/$service:latest ./$service
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/$service:latest
+          else
+            echo "Could not find directory for service $service"
+            exit 1
+          fi
+        done
+
+    - name: Fix routes in docker-compose.yml
+      run: |
+        sed -i 's|build: \./|build: ../|g' ./docker/docker-compose.yml
+        echo "Updated content from docker-compose.yml:"
+        cat ./docker/docker-compose.yml
+
+    - name: Execute Docker Compose
+      run: |
+        docker-compose -f ./docker/docker-compose.yml up -d
