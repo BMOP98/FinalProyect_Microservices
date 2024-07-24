@@ -3,72 +3,72 @@ services:
   verify-information:
    build: ../verify-information
    ports:
-     - 4001
+     - 8080:4001
   register-information:
    build: ../register-information
    ports:
-     - 4002
+     - 8080:4002
   encrypt-information:
    build: ../encrypt-information
    ports:
-     - 4003
+     - 8080:4003
   login-user:
    build: ../login-user
    ports:
-     - 4004
+     - 8080:4004
   get-information:
    build: ../get-information
    ports:
-     - 4005
+     - 8080:4005
   count-information:
    build: ../count-information
    ports:
-     - 4006
+     - 8080:4006
   create-hall:
    build: ../create-hall
    ports:
-     - 4007
+     - 8080:4007
   get-halls:
    build: ../get-halls
    ports:
-     - 4008
+     - 8080:4008
   get-images:
    build: ../get-images
    ports:
-     - 4009
+     - 8080:4009
   edit-hall:
    build: ../edit-hall
    ports:
-     - 4010
+     - 8080:4010
   get-rent:
    build: ../get-rent
    ports:
-     - 4011
+     - 8080:4011
   create-rent:
    build: ../create-rent
    ports:
-     - 4012
+     - 8080:4012
   edit-rent:
    build: ../edit-rent
    ports:
-     - 4013
+     - 8080:4013
   get-services:
    build: ../get-services
    ports:
-     - 4014
+     - 8080:4014
   create-service:
    build: ../create-service
    ports:
-     - 4015
+     - 8080:4015
   edit-service:
    build: ../edit-service
    ports:
-     - 4016
+     - 8080:4016
   decrypt-information:
    build: ../decrypt-information
    ports:
-     - 4017
+     - 8080:4017
   create-reserve:
    build: ../create-reserve
    ports:
-     - 4018
+     - 8080:4018

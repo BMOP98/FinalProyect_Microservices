@@ -1,46 +1,262 @@
-name: Build and Push Docker Images 
+name: Build, Push, and Deploy Docker Images
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_KEY: ${{ secrets.EC2_KEY }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-      
-    - name: Sign in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-        
-    - name: Build and upload Docker images
-      run: |
-        services=("verify-information" "register-information" "encrypt-information" "login-user" "get-information" "count-information" "create-hall" "get-halls" "get-images"
-        "edit-hall" "get-rent" "create-rent" "edit-rent" "get-services" "create-service" "edit-service" "decrypt-information" "create-reserve" "create-reserverent" "create-reserveservice" )
-        
-        for service in "${services[@]}"
-        do
-          if [ -d "$service" ]; then
-            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/$service:latest ./$service
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/$service:latest
-          else
-            echo "Could not find directory for service $service"
-            exit 1
-          fi
-        done
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Fix routes in docker-compose.yml
-      run: |
-        sed -i 's|build: \./|build: ../|g' ./docker/docker-compose.yml
-        echo "Updated content from docker-compose.yml:"
-        cat ./docker/docker-compose.yml
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-    - name: Execute Docker Compose
-      run: |
-        docker-compose -f ./docker/docker-compose.yml up -d
+      - name: Login to DockerHub
+        run: echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+
+      - name: Build and push verify-information
+        uses: docker/build-push-action@v2
+        with:
+          context: ./verify-information
+          file: ./verify-information/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/verify-information
+
+      - name: Build and push register-information
+        uses: docker/build-push-action@v2
+        with:
+          context: ./register-information
+          file: ./register-information/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/register-information
+
+      - name: Build and push encrypt-information
+        uses: docker/build-push-action@v2
+        with:
+          context: ./encrypt-information
+          file: ./encrypt-information/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/encrypt-information
+
+      - name: Build and push login-user
+        uses: docker/build-push-action@v2
+        with:
+          context: ./login-user
+          file: ./login-user/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/login-user
+          
+      - name: Build and push get-information
+        uses: docker/build-push-action@v2
+        with:
+          context: ./get-information
+          file: ./get-information/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/get-information
+
+      - name: Build and push count-information
+        uses: docker/build-push-action@v2
+        with:
+          context: ./count-information
+          file: ./count-information/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/count-information
+      - name: Build and push create-hall
+        uses: docker/build-push-action@v2
+        with:
+          context: ./create-hall
+          file: ./create-hall/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/create-hall
+
+      - name: Build and push get-halls
+        uses: docker/build-push-action@v2
+        with:
+          context: ./get-halls
+          file: ./get-halls/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/get-halls 
+
+      - name: Build and push get-images
+        uses: docker/build-push-action@v2
+        with:
+          context: ./get-images
+          file: ./get-images/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/get-images
+
+      - name: Build and push edit-hall
+        uses: docker/build-push-action@v2
+        with:
+          context: ./edit-hall
+          file: ./edit-hall/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/edit-hall
+
+      - name: Build and push get-rent
+        uses: docker/build-push-action@v2
+        with:
+            context: ./get-rent
+            file: ./get-rent/Dockerfile
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/get-rent
+
+      - name: Build and push create-rent
+        uses: docker/build-push-action@v2
+        with:
+            context: ./create-rent
+            file: ./create-rent/Dockerfile
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/create-rent
+
+      - name: Build and push edit-rent
+        uses: docker/build-push-action@v2
+        with:
+            context: ./edit-rent
+            file: ./edit-rent/Dockerfile
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/edit-rent
+
+      - name: Build and push get-services
+        uses: docker/build-push-action@v2
+        with:
+          context: ./get-services
+          file: ./get-services/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/get-services
+
+      - name: Build and push create-service
+        uses: docker/build-push-action@v2
+        with:
+          context: ./create-service
+          file: ./create-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/create-service
+      
+      - name: Build and push edit-service
+        uses: docker/build-push-action@v2
+        with:
+          context: ./edit-service
+          file: ./edit-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/edit-service
+
+      - name: Build and push decrypt-information
+        uses: docker/build-push-action@v2
+        with:
+          context: ./decrypt-information
+          file: ./decrypt-information/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/decrypt-information
+
+      - name: Build and push create-reserve
+        uses: docker/build-push-action@v2
+        with:
+          context: ./create-reserve
+          file: ./create-reserve/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/create-reserve
+
+      - name: Build and push create-reserverent
+        uses: docker/build-push-action@v2
+        with:
+          context: ./create-reserverent
+          file: ./create-reserverent/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/create-reserverent
+
+      - name: Build and push create-reserveservice
+        uses: docker/build-push-action@v2
+        with:
+          context: ./create-reserveservice
+          file: ./create-reserveservice/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/create-reserveservice
+
+      - name: Fix routes in docker-compose.yml
+        run: |
+          sed -i 's|build: \./|build: ../|g' ./docker/docker-compose.yml
+          echo "Updated content from docker-compose.yml:"
+          cat ./docker/docker-compose.yml
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}  
+          script: |
+            docker login -u "${DOCKERHUB_USERNAME}" -p "${DOCKERHUB_TOKEN}"
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/verify-information
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/register-information
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/encrypt-information
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/login-user
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/get-information
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/count-information
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/create-hall
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/get-halls
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/get-images
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/edit-hall
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/get-rent
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/create-rent
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/edit-rent
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/get-services
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/create-service
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/edit-service
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/decrypt-information
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/create-reserve
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/create-reserverent
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/create-reserveservice
+            docker stop verify-information || true
+            docker stop register-information || true
+            docker stop encrypt-information || true
+            docker stop login-user || true
+            docker stop get-information || true
+            docker stop count-information || true
+            docker stop create-hall || true
+            docker stop get-halls || true
+            docker stop get-images || true
+            docker stop edit-hall || true
+            docker stop get-rent || true
+            docker stop create-rent || true
+            docker stop edit-rent || true
+            docker stop get-services || true
+            docker stop create-service || true
+            docker stop edit-service || true
+            docker stop decrypt-information || true
+            docker stop create-reserve || true
+            docker stop create-reserverent || true
+            docker stop create-reserveservice || true
+            
+            docker run -d --name verify-information -p 8080:4001 ${{ secrets.DOCKERHUB_USERNAME }}/verify-information:latest
+            docker run -d --name register-information -p 8001:4002 ${{ secrets.DOCKERHUB_USERNAME }}/register-information
+            docker run -d --name encrypt-information -p 8002:4003 ${{ secrets.DOCKERHUB_USERNAME }}/encrypt-information
+            docker run -d --name login-user -p 8002:4004 ${{ secrets.DOCKERHUB_USERNAME }}/login-user
+            docker run -d --name get-information -p 8002:4005 ${{ secrets.DOCKERHUB_USERNAME }}/get-information
+            docker run -d --name count-information -p 8002:4006 ${{ secrets.DOCKERHUB_USERNAME }}/count-information
+            docker run -d --name create-hall -p 8002:4007 ${{ secrets.DOCKERHUB_USERNAME }}/create-hall
+            docker run -d --name get-halls -p 8002:4008 ${{ secrets.DOCKERHUB_USERNAME }}/get-halls
+            docker run -d --name get-images -p 8002:4009 ${{ secrets.DOCKERHUB_USERNAME }}/get-images
+            docker run -d --name edit-hall -p 8002:4010 ${{ secrets.DOCKERHUB_USERNAME }}/edit-hall
+            docker run -d --name get-rent -p 8002:4011 ${{ secrets.DOCKERHUB_USERNAME }}/get-rent
+            docker run -d --name create-rent -p 8002:4012 ${{ secrets.DOCKERHUB_USERNAME }}/create-rent
+            docker run -d --name edit-rent -p 8002:4013 ${{ secrets.DOCKERHUB_USERNAME }}/edit-rent
+            docker run -d --name get-services -p 8002:4014 ${{ secrets.DOCKERHUB_USERNAME }}/get-services
+            docker run -d --name create-service -p 8002:4015 ${{ secrets.DOCKERHUB_USERNAME }}/create-service
+            docker run -d --name edit-service -p 8002:4016 ${{ secrets.DOCKERHUB_USERNAME }}/edit-service
+            docker run -d --name decrypt-information -p 8002:4017 ${{ secrets.DOCKERHUB_USERNAME }}/decrypt-information
+            docker run -d --name create-reserve -p 8002:4018 ${{ secrets.DOCKERHUB_USERNAME }}/create-reserve
+            docker run -d --name create-reserverent -p 8002:4019 ${{ secrets.DOCKERHUB_USERNAME }}/create-reserverent
+            docker run -d --name create-reserveservice -p 8002:4020 ${{ secrets.DOCKERHUB_USERNAME }}/create-reserveservice
