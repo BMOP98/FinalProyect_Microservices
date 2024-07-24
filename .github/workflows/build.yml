@@ -22,7 +22,7 @@ jobs:
     - name: Build and upload Docker images
       run: |
         services=("verify-information" "register-information" "encrypt-information" "login-user" "get-information" "count-information" "create-hall" "get-halls" "get-images"
-        "edit-hall" "get-rent" "create-rent" "edit-rent" "get-services" "create-service" "edit-service" "decrypt-information" "create-reserve")
+        "edit-hall" "get-rent" "create-rent" "edit-rent" "get-services" "create-service" "edit-service" "decrypt-information" "create-reserve" "create-reserverent" "create-reserveservice" )
         
         for service in "${services[@]}"
         do
