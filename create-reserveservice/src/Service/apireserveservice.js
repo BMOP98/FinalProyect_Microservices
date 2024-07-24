@@ -3,18 +3,15 @@ const router = new Router();
 const { connectToDatabase } = require('../../modules/mongoconect');
 router.post('/', async (req, res) => {
     try {
-        const { name, idclients, formattedDate, eventTime, state } = req.body;
+        const { idservices, selectedReservation } = req.body;
         const db = await connectToDatabase();
-        const InsertReserve = db.collection("reservations");
+        const InsertService = db.collection("services");
         const body = {
-            hall: name,
-            idclient: idclients,
-            date: formattedDate,
-            time: eventTime,
-            state: state
+            idservice: idservices,
+            idreserve: selectedReservation,
         }
-        const result = await InsertReserve.insertOne(body);
-        res.status(201).json("User successfully created");
+        const result = await InsertService.insertOne(body);
+        res.status(201).json("Service successfully created");
     } catch (error) {
         res.status(500).json("error: " + error);
     }
